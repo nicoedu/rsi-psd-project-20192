@@ -4,6 +4,7 @@ import json
 from time import sleep
 from datetime import datetime
 from random import randrange
+import fnmatch
 
 # Create an instance of the Kafka producer
 producer = KafkaProducer(bootstrap_servers='localhost:9092',
@@ -15,5 +16,7 @@ def get_random_sensor_data():
 
 
 while True:
-    producer.send('sensor', get_random_sensor_data())
+    data = get_random_sensor_data()
+    producer.send('sensor', data)
+    print('sent: sensor:' + str(data))
     sleep(5)
