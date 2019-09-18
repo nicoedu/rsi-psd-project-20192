@@ -17,6 +17,6 @@ def get_random_sensor_data():
 
 while True:
     data = get_random_sensor_data()
-    producer.send('sensor', data)
-    print('sent: sensor:' + str(data))
+    producer.send('A302.sensor', data)
+    print('sent: A302.sensor:' + str(data))
     sleep(5)

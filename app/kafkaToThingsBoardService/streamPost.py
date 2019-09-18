@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import faust
 import aiohttp
-import os
+from typing import Union
 
 import json
 TB_HOST = 'thingsboard'
@@ -16,10 +16,10 @@ app = faust.App(
     value_serializer='raw',
 )
 
-topic_instance = app.topic(pattern='\w[a-zA-Z0-9]+\w\.sensor')
+#topic_instance = app.topic(pattern=re.compile('[a-zA-Z0-9]+\.sensor'))
+topic_instance = app.topic('sensor')
 
-
-@app.agent(topic_instance)
+@app.agent(topic_instance, concurrency=3)
 async def postAgent(stream):
     async for data in stream:
         async with aiohttp.ClientSession() as session:
