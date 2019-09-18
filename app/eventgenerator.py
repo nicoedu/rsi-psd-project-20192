@@ -10,6 +10,17 @@ import fnmatch
 import asyncio
 
 
+class MessageModel():
+    stationCode: str
+    temperature: float
+    humidity: float
+
+    def __init__(self, stationCode, temperature, humidity):
+        self.stationCode = stationCode
+        self.temperature = temperature
+        self.humidity = humidity
+
+
 def getStationsFilesNames(path):
     station_files = []
     for file in os.listdir(path):
@@ -39,9 +50,13 @@ async def readCsvFile(producer, file, speed):
     with open(file, "rt") as source:
         reader = csv.DictReader(source, delimiter=',')
         for row in reader:
-            message = json.dumps({'ts': row['timestamp'], 'values': {
-                                 'temperature': row['temp_inst'], 'humidity': row['umid_inst']}})
-            publishKafka(producer, row['stationCode']+'.sensor', message)
+            topic = row['stationCode']+'.sensor'
+            timestamp = row['timestamp']
+            values = MessageModel(
+                row['stationCode'], row['temp_inst'], row['umid_inst'])
+            message = json.dumps(
+                {'ts': timestamp, 'values': json.dumps(values)})
+            publishKafka(producer, topic, message)
             sleep(3600 / speed)
 
 
