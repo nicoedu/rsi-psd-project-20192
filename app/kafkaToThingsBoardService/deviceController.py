@@ -15,9 +15,8 @@ async def getThingsboardAuthToken():
         else:
             raise Exception(resp.status + str(responseDict))
 
+
 # @param name Nome do device a ser criado
-
-
 async def createDevice(name, header):
     async with aiohttp.ClientSession() as session:
         resp = await session.post('http://'+HOST+'/api/device', json={'name': name, 'type': 'default'}, headers=header)
@@ -48,6 +47,7 @@ async def getDeviceAcessToken(id, header):
             raise Exception(resp.status + str(responseDict))
 
 
+# TODO nomear Exception
 async def getAcessToken(name):
     #    loop = asyncio.get_event_loop()
     authToken = await asyncio.ensure_future(getThingsboardAuthToken())

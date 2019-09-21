@@ -1,7 +1,10 @@
-from kafka import KafkaProducer, KafkaClient, KafkaAdminClient, NewTopic
+from kafka import KafkaProducer
+from kafka.admin import KafkaAdminClient, NewTopic
+from kafka.client import KafkaClient
 from time import sleep
 
 
+# TODO nomear corretamente a Exception
 def connectKafkaProducer(host):
     producer = None
     try:
@@ -14,15 +17,20 @@ def connectKafkaProducer(host):
         return producer
 
 
-def createTopic(topic_name):
+# TODO Tratar exception de falha ao conectar
+def createTopic(topic_name, partition_number):
+    admin_client = KafkaAdminClient(
+        bootstrap_servers="localhost:9092", client_id='test')
+    topic_list = []
+    topic_list.append(NewTopic(name=topic_name,
+                               num_partitions=partition_number, replication_factor=1))
+    admin_client.create_topics(new_topics=topic_list, validate_only=False)
 
-    # Check if topic exists
+
+# TODO Tratar exception de falha ao conectar
+def checkTopicExists(topic_name):
     kafkaClient = KafkaClient(bootstrap_servers='localhost:9092')
-    server_topics = kafkaClient.topic_partitions
-    if topic_name not in server_topics:
-        admin_client = KafkaAdminClient(
-            bootstrap_servers="localhost:9092", client_id='test')
-        topic_list = []
-        topic_list.append(NewTopic(name="example_topic",
-                                   num_partitions=13, replication_factor=2))
-        admin_client.create_topics(new_topics=topic_list, validate_only=False)
+    metadata = kafkaClient.poll()
+    server_topics = list(x[1] for x in metadata[0].topics)
+    kafkaClient.close()
+    return topic_name in server_topics

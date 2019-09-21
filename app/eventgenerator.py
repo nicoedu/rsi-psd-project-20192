@@ -10,6 +10,7 @@ import threading
 import kafkaController
 
 HOST = 'localhost'
+TOPIC_NAME = 'weatherstation.sensor'
 
 
 class MessageModel:
@@ -33,28 +34,39 @@ def getStationsFilesNames(path):
     return station_files
 
 
-async def publishKafka(producer, topic, message):
-    await producer.send(topic, message)
+# TODO Obter feedback do envio ou tratar falha
+def publishKafka(producer, topic, message):
+    temp = producer.send(topic, message)
     print('sent: %s : %s' % (topic, message))
 
 
 def readCsvFile(producer, file, speed):
     with open(file, "rt") as source:
         reader = csv.DictReader(source, delimiter=',')
-        loop = asyncio.get_event_loop()
         for row in reader:
-            kafkaTopic = row['stationCode']+'.sensor'
+            kafkaTopic = 'weatherstation.sensor'
             sensorData = MessageModel(row['timestamp'],
                                       row['stationCode'], row['temp_inst'], row['umid_inst'])
             kafkaMessage = json.dumps(sensorData.__dict__)
-            loop.run_until_complete(publishKafka(
-                producer, kafkaTopic, kafkaMessage))
+            publishKafka(
+                producer, kafkaTopic, kafkaMessage)
             sleep(3600 / speed)
 
 
-# TODO fazer a leitura dos diferentes csv em paralelo
+# TODO Tratar exception de thread
+def main(files_patch, speed):
+    stationFiles = getStationsFilesNames(files_patch)
+    if(not kafkaController.checkTopicExists(TOPIC_NAME)):
+        kafkaController.createTopic(TOPIC_NAME, len(stationFiles))
+    kakfaProducer = kafkaController.connectKafkaProducer(HOST)
+
+    for file in stationFiles:
+        t = threading.Thread(target=readCsvFile,
+                             args=(kakfaProducer, files_patch + '/' + file, speed))
+        t.start()
+
+
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
     files_patch = './data'
     speed = input("Insira a velocidade desejada: ")
     try:
@@ -62,9 +74,4 @@ if __name__ == "__main__":
     except Exception as ex:
         print('Invalid integer. Setting speed to 1')
         speed = 1
-    kakfaProducer = kafkaController.connectKafkaProducer(HOST)
-
-    for file in getStationsFilesNames(files_patch):
-        t = threading.Thread(target=readCsvFile,
-                             args=(kakfaProducer, file, speed))
-        t.start()
+    main(files_patch, speed)

@@ -12,6 +12,7 @@ TB_HOST = 'thingsboard'
 KAFKA_HOST = 'kafka'
 THINGS_BOARD_ACCESS_TOKEN = "A1_TEST_TOKEN"
 APP_NAME = 'conectorKafktaThingsboard'
+TOPIC_NAME = 'weatherstation.sensor'
 
 # Instância do faust
 app = faust.App(
@@ -41,13 +42,13 @@ async def getAcessTokenByStationCode(message: MessageModel):
     return await deviceController.getAcessToken(message.stationCode)
 
 
-# Retorna a URL para o device correto do thingsboard
+# Retorna a URL para o request post para o acess token passado no parametro
 def getTargetPostUrl(acessToken):
     return 'http://'+TB_HOST+':9090/api/v1/' + acessToken + '/telemetry'
 
 
 # Instancia dos topicos do kafka que desejam ser escutados pelo agent
-topic_instance = app.topic("A351.sensor", value_type=MessageModel)
+topic_instance = app.topic('weatherstation.sensor', value_type=MessageModel)
 
 
 # Função actor que recebe mensagens de uma stream (Mensagens de um ou mais tópicos kafka) e envia para o device correto do thingsboard
