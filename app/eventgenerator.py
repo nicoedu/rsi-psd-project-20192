@@ -1,21 +1,25 @@
 #!/usr/bin/env python3
 from kafka import KafkaProducer
 from time import sleep
-from datetime import datetime
-import time
 import csv
 import json
 import os
 import fnmatch
 import asyncio
+import threading
+import kafkaController
+
+HOST = 'localhost'
 
 
-class MessageModel():
+class MessageModel:
+    timestamp: int
     stationCode: str
     temperature: float
     humidity: float
 
-    def __init__(self, stationCode, temperature, humidity):
+    def __init__(self, timestamp, stationCode, temperature, humidity):
+        self.timestamp = timestamp
         self.stationCode = stationCode
         self.temperature = temperature
         self.humidity = humidity
@@ -29,34 +33,22 @@ def getStationsFilesNames(path):
     return station_files
 
 
-def connect_kafka_producer():
-    producer = None
-    try:
-        producer = KafkaProducer(bootstrap_servers='localhost:9092',
-                                 value_serializer=lambda v: str(v).encode('utf-8'))
-    except Exception as ex:
-        print('Exception while connecting Kafka')
-        print(ex)
-    finally:
-        return producer
-
-
-def publishKafka(producer, topic, message):
-    producer.send(topic, message)
+async def publishKafka(producer, topic, message):
+    await producer.send(topic, message)
     print('sent: %s : %s' % (topic, message))
 
 
-async def readCsvFile(producer, file, speed):
+def readCsvFile(producer, file, speed):
     with open(file, "rt") as source:
         reader = csv.DictReader(source, delimiter=',')
+        loop = asyncio.get_event_loop()
         for row in reader:
-            topic = row['stationCode']+'.sensor'
-            timestamp = row['timestamp']
-            values = MessageModel(
-                row['stationCode'], row['temp_inst'], row['umid_inst'])
-            message = json.dumps(
-                {'ts': timestamp, 'values': json.dumps(values)})
-            publishKafka(producer, topic, message)
+            kafkaTopic = row['stationCode']+'.sensor'
+            sensorData = MessageModel(row['timestamp'],
+                                      row['stationCode'], row['temp_inst'], row['umid_inst'])
+            kafkaMessage = json.dumps(sensorData.__dict__)
+            loop.run_until_complete(publishKafka(
+                producer, kafkaTopic, kafkaMessage))
             sleep(3600 / speed)
 
 
@@ -70,8 +62,9 @@ if __name__ == "__main__":
     except Exception as ex:
         print('Invalid integer. Setting speed to 1')
         speed = 1
-    producer = connect_kafka_producer()
+    kakfaProducer = kafkaController.connectKafkaProducer(HOST)
+
     for file in getStationsFilesNames(files_patch):
-        asyncio.ensure_future(readCsvFile(
-            producer, files_patch+'/'+file, int(speed)))
-    loop.run_forever()
+        t = threading.Thread(target=readCsvFile,
+                             args=(kakfaProducer, file, speed))
+        t.start()

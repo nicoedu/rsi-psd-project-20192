@@ -2,35 +2,60 @@
 import faust
 import aiohttp
 from typing import Union
-
 import json
+import deviceController
+import asyncio
+
+# Variaveis de ambiente
+
 TB_HOST = 'thingsboard'
 KAFKA_HOST = 'kafka'
 THINGS_BOARD_ACCESS_TOKEN = "A1_TEST_TOKEN"
-POST_TARGET_URL = 'http://'+TB_HOST+':9090/api/v1/' + \
-    THINGS_BOARD_ACCESS_TOKEN + '/telemetry'
 APP_NAME = 'conectorKafktaThingsboard'
 
-# TODO CRIAR CLASSE MODEL DA LEITURA DE SENSOR
+# Instância do faust
 app = faust.App(
     APP_NAME,
-    broker='kafka://'+KAFKA_HOST+':29092',
-    value_serializer='raw',
+    broker='kafka://'+KAFKA_HOST+':29092'
 )
 
+
+# Modelo da mensagens do Kafka
+class MessageModel(faust.Record, serializer='json'):
+    timestamp: int
+    stationCode: str
+    temperature: float
+    humidity: float
+
+
+# Função de formatação exigida pelo thingsboard
+def thingsBoardFormatter(message: MessageModel):
+    formattedMessage = {"ts": message.timestamp, "values": {
+        "temperature": str(message.temperature), "humidity": str(message.humidity)}}
+    return formattedMessage
+
+
+# Retorna o acess token de uma estação
+async def getAcessTokenByStationCode(message: MessageModel):
+
+    return await deviceController.getAcessToken(message.stationCode)
+
+
+# Retorna a URL para o device correto do thingsboard
+def getTargetPostUrl(acessToken):
+    return 'http://'+TB_HOST+':9090/api/v1/' + acessToken + '/telemetry'
+
+
 # Instancia dos topicos do kafka que desejam ser escutados pelo agent
-topic_instance = app.topic('A301.sensor', 'A302.sensor')
+topic_instance = app.topic("A351.sensor", value_type=MessageModel)
 
 
-# Notação @app.agent recebe como argumento um canal, que no nosso caso é uma isntância dos topicos kafka
-# A função do tipo agent recebe um argumento Stream, produzido pelo app.agent, conténdo um interador assíncrono das mensagens transportadas pelo canal.
-#
-# A função executa, para cada mensagém lida, uma requisição do tipo post enviando para uma certa url os dados desta mensagem.
+# Função actor que recebe mensagens de uma stream (Mensagens de um ou mais tópicos kafka) e envia para o device correto do thingsboard
 @app.agent(topic_instance, concurrency=3)
 async def postAgent(stream):
     session = aiohttp.ClientSession()
-    async for data in stream:
-        print(stream.current_event)
-        print(stream.info())
-        resp = await session.post(POST_TARGET_URL, data=data.decode("ascii"))
-        print(resp.status)
+    async for message in stream:
+        acessToken = await getAcessTokenByStationCode(message)
+        tbData = thingsBoardFormatter(message)
+        resp = await session.post(getTargetPostUrl(acessToken), json=tbData)
+        print('Response code ' + str(resp.status) + ' to data: ' + str(tbData))
