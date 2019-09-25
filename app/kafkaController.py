@@ -10,7 +10,7 @@ def connectKafkaProducer(host):
     producer = None
     try:
         producer = KafkaProducer(bootstrap_servers=host + ':9092',
-                                 value_serializer=lambda v: str(v).encode('utf-8'))
+                                 value_serializer=lambda v: str(v).encode('utf-8'),acks=1,retries=3,max_in_flight_requests_per_connection=1)
     except Exception as ex:
         logging.error(ex)
     finally:

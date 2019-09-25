@@ -4,10 +4,13 @@ from time import sleep
 import csv
 import json
 import os
+import sys
 import fnmatch
 import asyncio
 import threading
 import kafkaController
+#import LogFormatter
+import logging
 
 HOST = 'localhost'
 TOPIC_NAME = 'weatherstation.sensor'
@@ -40,8 +43,11 @@ def getStationsFilesNames(path):
 
 # TODO Obter feedback do envio ou tratar falha
 def publishKafka(producer, topic, message):
-    temp = producer.send(topic, message)
-    print('sent: %s : %s' % (topic, message))
+    try:
+        producer.send(topic, message)
+    except Exception as e:
+        logging.error('FAILED TO SENT: %s : %s  WITH ERROR %s' % (topic, message, str(e)))
+    logging.info('sent: %s : %s' % (topic, message))
 
 
 def readCsvFile(producer, file, speed):
@@ -57,8 +63,8 @@ def readCsvFile(producer, file, speed):
             sleep(3600 / speed)
 
 
-# TODO Tratar exception de thread
 def main(files_patch, speed):
+    logging.error("teste")
     stationFiles = getStationsFilesNames(files_patch)
     if(not kafkaController.checkTopicExists(TOPIC_NAME)):
         kafkaController.createTopic(TOPIC_NAME, len(stationFiles))
@@ -70,8 +76,13 @@ def main(files_patch, speed):
                              args=(kakfaProducer, files_patch + '/' + file, speed))
         t.start()
 
-
 if __name__ == "__main__":
+    #fmt = LogFormatter.LogFormatter()
+    hdlr = logging.StreamHandler(sys.stdout)
+
+    #hdlr.setFormatter(fmt)
+    logging.root.addHandler(hdlr)
+    logging.root.setLevel(logging.INFO)
     files_patch = './data'
     speed = input("Insira a velocidade desejada: ")
     try:
