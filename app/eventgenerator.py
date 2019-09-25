@@ -18,12 +18,16 @@ class MessageModel:
     stationCode: str
     temperature: float
     humidity: float
+    latitude: str
+    longitude: str
 
-    def __init__(self, timestamp, stationCode, temperature, humidity):
+    def __init__(self, timestamp, stationCode, temperature, humidity,latitude,longitude):
         self.timestamp = timestamp
         self.stationCode = stationCode
         self.temperature = temperature
         self.humidity = humidity
+        self.latitude = latitude
+        self.longitude = longitude
 
 
 def getStationsFilesNames(path):
@@ -46,7 +50,7 @@ def readCsvFile(producer, file, speed):
         for row in reader:
             kafkaTopic = 'weatherstation.sensor'
             sensorData = MessageModel(row['timestamp'],
-                                      row['stationCode'], row['temp_inst'], row['umid_inst'])
+                                      row['stationCode'], row['temp_inst'], row['umid_inst'],row['latitude'],row['longitude'])
             kafkaMessage = json.dumps(sensorData.__dict__)
             publishKafka(
                 producer, kafkaTopic, kafkaMessage)
@@ -61,6 +65,7 @@ def main(files_patch, speed):
     kakfaProducer = kafkaController.connectKafkaProducer(HOST)
 
     for file in stationFiles:
+        
         t = threading.Thread(target=readCsvFile,
                              args=(kakfaProducer, files_patch + '/' + file, speed))
         t.start()

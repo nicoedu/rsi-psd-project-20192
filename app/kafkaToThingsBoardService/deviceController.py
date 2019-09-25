@@ -46,26 +46,31 @@ async def getDeviceAcessToken(id, header):
         else:
             raise Exception(resp.status + str(responseDict))
 
+async def setLocationToDevice(acessToken, latitude, longitude):
+    async with aiohttp.ClientSession() as session:
+        resp = await session.post('http://'+HOST+'/api/v1/%s/attributes' % (str(acessToken)), json={'latitude': latitude, 'longitude': longitude})
+        responseDict = await resp.json()
+        if (resp.status == 200):
+            return True
+        else: 
+            return False
+
 
 # TODO nomear Exception
-async def getAcessToken(name):
-    #    loop = asyncio.get_event_loop()
+async def getAcessToken(name) -> tuple:
+    isNewDevice = False
     authToken = await asyncio.ensure_future(getThingsboardAuthToken())
     header = {"Accept": "application/json",
               "X-Authorization": "Bearer "+authToken}
     try:
         deviceId = await asyncio.ensure_future(getDeviceId(name, header))
         acessToken = await asyncio.ensure_future(getDeviceAcessToken(deviceId, header))
-        return acessToken
+        return acessToken, isNewDevice
     except:
         try:
             deviceId = await asyncio.ensure_future((createDevice(name, header)))
             acessToken = await asyncio.ensure_future((getDeviceAcessToken(deviceId, header)))
-            return acessToken
+            isNewDevice = True
+            return acessToken, isNewDevice
         except:
             print("Error")
-
-
-# if __name__ == '__main__':
-#    loop = asyncio.get_event_loop()
-#    loop.run_until_complete(getAcessToken("teste"))
