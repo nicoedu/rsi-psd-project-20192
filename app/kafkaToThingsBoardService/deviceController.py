@@ -1,4 +1,5 @@
 import aiohttp
+import logging
 import json
 import asyncio
 
@@ -7,53 +8,70 @@ HOST = 'thingsboard:9090'
 
 
 async def getThingsboardAuthToken():
-    async with aiohttp.ClientSession() as session:
-        resp = await session.post('http://'+HOST+'/api/auth/login', json={"username": "tenant@thingsboard.org", "password": "tenant"}, headers={"Accept": "application/json"})
-        responseDict = await resp.json()
-        if resp.status == 200:
-            return responseDict['token']
-        else:
-            raise Exception(resp.status + str(responseDict))
+    try:
+        async with aiohttp.ClientSession() as session:
+            resp = await session.post('http://'+HOST+'/api/auth/login', json={"username": "tenant@thingsboard.org", "password": "tenant"}, headers={"Accept": "application/json"})
+            responseDict = await resp.json()
+            if resp.status == 200:
+                return responseDict['token']
+            else:
+                raise Exception(resp.status + str(responseDict))
+    except Exception as exc:
+        logging.error(exc)
 
 
 # @param name Nome do device a ser criado
 async def createDevice(name, header):
-    async with aiohttp.ClientSession() as session:
-        resp = await session.post('http://'+HOST+'/api/device', json={'name': name, 'type': 'default'}, headers=header)
-        responseDict = await resp.json()
-        if (resp.status == 200):
-            return (responseDict['id']['id'])
-        else:
-            raise Exception(resp.status + str(responseDict))
+    try:
+        async with aiohttp.ClientSession() as session:
+            resp = await session.post('http://'+HOST+'/api/device', json={'name': name, 'type': 'default'}, headers=header)
+            responseDict = await resp.json()
+            if (resp.status == 200):
+                return (responseDict['id']['id'])
+            else:
+                raise Exception(resp.status + str(responseDict))
+    except Exception as exc:
+        logging.error(exc)
+
 
 
 async def getDeviceId(name, header):
-    async with aiohttp.ClientSession() as session:
-        resp = await session.get('http://'+HOST+'/api/tenant/devices?deviceName='+str(name), headers=header)
-        responseDict = await resp.json()
-        if (resp.status == 200):
-            return (responseDict['id']['id'])
-        else:
-            raise Exception(resp.status + str(responseDict))
+    try:
+        async with aiohttp.ClientSession() as session:
+            resp = await session.get('http://'+HOST+'/api/tenant/devices?deviceName='+str(name), headers=header)
+            responseDict = await resp.json()
+            if (resp.status == 200):
+                return (responseDict['id']['id'])
+            else:
+                raise Exception(resp.status + str(responseDict))
+    except Exception as exc:
+        logging.error(exc)
 
 
 async def getDeviceAcessToken(id, header):
-    async with aiohttp.ClientSession() as session:
-        resp = await session.get('http://'+HOST+'/api/device/%s/credentials' % (str(id)), headers=header)
-        responseDict = await resp.json()
-        if (resp.status == 200):
-            return (responseDict['credentialsId'])
-        else:
-            raise Exception(resp.status + str(responseDict))
+    try:
+        async with aiohttp.ClientSession() as session:
+            resp = await session.get('http://'+HOST+'/api/device/%s/credentials' % (str(id)), headers=header)
+            responseDict = await resp.json()
+            if (resp.status == 200):
+                return (responseDict['credentialsId'])
+            else:
+                raise Exception(resp.status + str(responseDict))
+    except Exception as exc:
+        logging.error(exc)
+
 
 async def setLocationToDevice(acessToken, latitude, longitude):
-    async with aiohttp.ClientSession() as session:
-        resp = await session.post('http://'+HOST+'/api/v1/%s/attributes' % (str(acessToken)), json={'latitude': latitude, 'longitude': longitude})
-        responseDict = await resp.json()
-        if (resp.status == 200):
-            return True
-        else: 
-            return False
+    try:
+        async with aiohttp.ClientSession() as session:
+            resp = await session.post('http://'+HOST+'/api/v1/%s/attributes' % (str(acessToken)), json={'latitude': latitude, 'longitude': longitude})
+            if (resp.status == 200):
+                return True
+            else: 
+                return False
+    except Exception as exc:
+        logging.error(exc)
+
 
 
 # TODO nomear Exception
@@ -72,5 +90,5 @@ async def getAcessToken(name) -> tuple:
             acessToken = await asyncio.ensure_future((getDeviceAcessToken(deviceId, header)))
             isNewDevice = True
             return acessToken, isNewDevice
-        except:
-            print("Error")
+        except Exception as ex:
+            logging.error(ex)
