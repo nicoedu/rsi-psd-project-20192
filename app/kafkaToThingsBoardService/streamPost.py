@@ -30,6 +30,7 @@ class MessageModel(faust.Record, serializer='json'):
     latitude: str
     longitude: str
 
+
 # Função de formatação exigida pelo thingsboard
 def thingsBoardFormatter(message: MessageModel):
     formattedMessage = {"ts": message.timestamp, "values": {
@@ -41,8 +42,13 @@ def thingsBoardFormatter(message: MessageModel):
 async def getAcessTokenByStationCode(message: MessageModel):
     acessToken, isNewDevice = await deviceController.getAcessToken(message.stationCode)
     if isNewDevice:
-        await deviceController.setLocationToDevice(acessToken,message.latitude, message.longitude)
+        await setLatLenToDevice(acessToken, message)
     return acessToken
+
+
+# Registra latitude e longitude de uma estação no device
+async def setLatLenToDevice(acessToken, message: MessageModel):
+    return await deviceController.setLocationToDevice(acessToken, message.latitude, message.longitude)
 
 
 # Retorna a URL para o request post para o acess token passado no parametro

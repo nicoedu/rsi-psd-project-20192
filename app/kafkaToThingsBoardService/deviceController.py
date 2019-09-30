@@ -32,7 +32,7 @@ async def createDevice(name, header):
             if (resp.status == 200):
                 return (responseDict['id']['id'])
             else:
-                raise Exception(resp.status + str(responseDict))
+                raise httpException(resp.status, str(responseDict['message']))
     except Exception as exc:
         logging.error(exc)
 
@@ -44,8 +44,10 @@ async def getDeviceId(name, header):
             responseDict = await resp.json()
             if (resp.status == 200):
                 return (responseDict['id']['id'])
+            elif resp.status == 404:
+                raise DeviceNotFound(resp.status, str(responseDict['message']))
             else:
-                raise Exception(resp.status + str(responseDict))
+                raise httpException(resp.status, str(responseDict['message']))
     except Exception as exc:
         logging.error(exc)
 
@@ -58,7 +60,7 @@ async def getDeviceAcessToken(id, header):
             if (resp.status == 200):
                 return (responseDict['credentialsId'])
             else:
-                raise Exception(resp.status + str(responseDict))
+                raise httpException(resp.status, str(responseDict['message']))
     except Exception as exc:
         logging.error(exc)
 
@@ -87,8 +89,7 @@ async def getAcessToken(name) -> tuple:
         return acessToken, isNewDevice
     except UnauthorizedException as error:
         logging.error(error)
-    except:
-        # @param name Nome do device a ser criado
+    except DeviceNotFound as error:
         try:
             deviceId = await asyncio.ensure_future((createDevice(name, header)))
             acessToken = await asyncio.ensure_future((getDeviceAcessToken(deviceId, header)))

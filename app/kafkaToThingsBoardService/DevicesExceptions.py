@@ -10,3 +10,7 @@ class httpException(Exception):
 
 class UnauthorizedException(httpException):
     pass
+
+
+class DeviceNotFound(httpException):
+    pass
