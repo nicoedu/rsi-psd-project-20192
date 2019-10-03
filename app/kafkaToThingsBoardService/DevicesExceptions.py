@@ -5,12 +5,12 @@ class httpException(Exception):
         self.message = message
 
     def __str__(self):
-        return "Error code: %s with message: %s" % (str(code), message)
+        return "Error code: %s with message: %s" % (str(self.code), self.message)
 
 
-class UnauthorizedException(httpException):
+class UnauthorizedException(Exception):
     pass
 
 
-class DeviceNotFound(httpException):
+class DeviceNotFound(Exception):
     pass

@@ -10,7 +10,6 @@ import asyncio
 
 TB_HOST = 'thingsboard'
 KAFKA_HOST = 'kafka'
-THINGS_BOARD_ACCESS_TOKEN = "A1_TEST_TOKEN"
 APP_NAME = 'conectorKafktaThingsboard'
 TOPIC_NAME = 'weatherstation.sensor'
 

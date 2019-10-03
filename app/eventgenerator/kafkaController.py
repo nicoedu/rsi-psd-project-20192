@@ -40,6 +40,7 @@ def checkTopicExists(topic_name):
     try:
         kafkaClient = KafkaClient(bootstrap_servers='localhost:9092')
         metadata = kafkaClient.poll()
+        print(metadata)
         server_topics = list(x[1] for x in metadata[0].topics)
         kafkaClient.close()
         return topic_name in server_topics

@@ -1,2 +1,3 @@
 .prettierignore
 app/__pycache__/
+app/eventgenerator/__pycache__/
