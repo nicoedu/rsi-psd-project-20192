@@ -1,2 +1,2 @@
-cat /home/rsi-psd-vm/.bashrc /home/rsi-psd-vm/Documents/rsi-psd-codes/psd/2019-2/pratica-05/jdk.sh >> .bashrctmp
-cp .bashrctmp /home/rsi-psd-vm/.bashrc
+cat /home/Documents/.bashrc /home/nicoedu/Documents/psd/rsi-psd-project-20192/app/spark/jdk.sh >> .bashrctmp
+cp .bashrctmp /home/Documents/.bashrc
