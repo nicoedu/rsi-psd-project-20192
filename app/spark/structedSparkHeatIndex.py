@@ -47,7 +47,6 @@ from pyspark.sql.functions import explode
 from pyspark.sql.functions import split, from_json, col
 from pyspark.sql.types import *
 from kafka import KafkaProducer
-import requests
 import json
 
 
