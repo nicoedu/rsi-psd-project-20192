@@ -55,6 +55,8 @@ def readCsvFile(producer, file, speed):
         reader = csv.DictReader(source, delimiter=',')
         for row in reader:
             kafkaTopic = 'weatherstation.sensor'
+            if(row['temp_inst'] == "" or row['umid_inst'] == ""):
+                continue
             sensorData = MessageModel(row['timestamp'],
                                       row['stationCode'], row['temp_inst'], row['umid_inst'],row['latitude'],row['longitude'])
             kafkaMessage = json.dumps(sensorData.__dict__)

@@ -46,9 +46,31 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import explode
 from pyspark.sql.functions import split, from_json, col
 from pyspark.sql.types import *
+from kafka import KafkaProducer
 import requests
 import json
 
+
+class ForeachWriter:
+    producer = None
+    def open(self, partition_id, epoch_id):
+        self.producer = KafkaProducer(bootstrap_servers='localhost:9092',
+                                 value_serializer=lambda v: str(v).encode('utf-8'), acks=1, retries=3, max_in_flight_requests_per_connection=1)
+        return True
+
+    def process(self, row):
+        temperatureCelcius = temperatureCelsiusToFahrenheit(float(row.temperature))
+        heatIndexFahreheint = calcHeatIndex(
+        temperatureCelcius, float(row.humidity))
+        heatIndexCelcius = temperatureFahrenheitToCelsius(heatIndexFahreheint)
+        data = {"timestamp":row.timestamp,"stationCode":row.stationCode,"heatIndex":heatIndexCelcius}
+        print(json.dumps(data))
+        self.producer.send('weatherstation.heatindex',json.dumps(data))
+
+    def close(self, error):
+        print(error)
+        self.producer.close()
+      
 
 def temperatureFahrenheitToCelsius(temp):
     return (temp - 32)/1.8
@@ -77,17 +99,6 @@ def calcHeatIndex(temperature, relHumidity):
         return hi + 0.02*(relHumidity - 85)*(87-temperature)
     else:
         return hi
-
-
-def processRow(row):
-    print(type(float(row.temperature)))
-    temperatureCelcius = temperatureCelsiusToFahrenheit(float(row.temperature))
-    heatIndexFahreheint = calcHeatIndex(
-        temperatureCelcius, float(row.humidity))
-    heatIndexCelcius = temperatureFahrenheitToCelsius(heatIndexFahreheint)
-    print(row.temperature, row.humidity, heatIndexCelcius)
-    # requests.post(url, json=row_data)
-
 
 if __name__ == "__main__":
 
@@ -123,7 +134,7 @@ if __name__ == "__main__":
 
     query = lines\
         .writeStream\
-        .foreach(processRow)\
+        .foreach(ForeachWriter())\
         .start()
 
     query.awaitTermination()

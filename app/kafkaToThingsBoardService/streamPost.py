@@ -21,32 +21,40 @@ app = faust.App(
 
 
 # Modelo da mensagens do Kafka
-class MessageModel(faust.Record, serializer='json'):
+class MessageSensorModel(faust.Record, serializer='json'):
     timestamp: int
     stationCode: str
     temperature: float
     humidity: float
     latitude: str
     longitude: str
+    
+class MessageHeatModel(faust.Record, serializer='json'):
+    timestamp: int
+    stationCode: str
+    heatIndex: float
 
 
 # Função de formatação exigida pelo thingsboard
-def thingsBoardFormatter(message: MessageModel):
+def tbSensorFormatter(message: MessageSensorModel):
     formattedMessage = {"ts": message.timestamp, "values": {
         "temperature": str(message.temperature), "humidity": str(message.humidity)}}
     return formattedMessage
 
+def tbHeatFormatter(message: MessageHeatModel):
+    formattedMessage = {"ts": message.timestamp, "values": {
+        "heatIndex": str(message.heatIndex)}}
+    return formattedMessage
+
 
 # Retorna o acess token de uma estação
-async def getAcessTokenByStationCode(message: MessageModel):
-    acessToken, isNewDevice = await deviceController.getAcessToken(message.stationCode)
-    if isNewDevice:
-        await setLatLenToDevice(acessToken, message)
-    return acessToken
+async def getAcessTokenByStationCode(stationCode):
+    acessToken, isNewDevice = await deviceController.getAcessToken(stationCode)
+    return acessToken, isNewDevice
 
 
 # Registra latitude e longitude de uma estação no device
-async def setLatLenToDevice(acessToken, message: MessageModel):
+async def setLatLenToDevice(acessToken, message: MessageSensorModel):
     return await deviceController.setLocationToDevice(acessToken, message.latitude, message.longitude)
 
 
@@ -56,15 +64,29 @@ def getTargetPostUrl(acessToken):
 
 
 # Instancia dos topicos do kafka que desejam ser escutados pelo agent
-topic_instance = app.topic('weatherstation.sensor', value_type=MessageModel)
+topic_sensor = app.topic('weatherstation.sensor', value_type=MessageSensorModel)
+topic_heatIndex = app.topic('weatherstation.heatindex', value_type=MessageHeatModel)
 
 
 # Função actor que recebe mensagens de uma stream (Mensagens de um ou mais tópicos kafka) e envia para o device correto do thingsboard
-@app.agent(topic_instance, concurrency=3)
+@app.agent(topic_sensor, concurrency=3)
 async def postAgent(stream):
     session = aiohttp.ClientSession()
     async for message in stream:
-        acessToken = await getAcessTokenByStationCode(message)
-        tbData = thingsBoardFormatter(message)
+        acessToken, isNewDevice = await getAcessTokenByStationCode(message.stationCode)
+        if(isNewDevice):
+            await setLatLenToDevice(acessToken, message)
+        tbData = tbSensorFormatter(message)
+        resp = await session.post(getTargetPostUrl(acessToken), json=tbData)
+        print('Response code ' + str(resp.status) + ' to data: ' + str(tbData))
+
+@app.agent(topic_heatIndex, concurrency=3)
+async def heatIndexAgent(stream):
+    session = aiohttp.ClientSession()
+    async for message in stream:
+        acessToken, isNewDevice = await getAcessTokenByStationCode(message.stationCode)
+        if(isNewDevice):
+            await setLatLenToDevice(acessToken, message)
+        tbData = tbHeatFormatter(message)
         resp = await session.post(getTargetPostUrl(acessToken), json=tbData)
         print('Response code ' + str(resp.status) + ' to data: ' + str(tbData))
