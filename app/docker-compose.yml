@@ -13,7 +13,7 @@ services:
     container_name: mytb
 
   zookeeper:
-    image: confluentinc/cp-zookeeper:latest
+    image: confluentinc/cp-zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -35,6 +35,7 @@ services:
 
   conector:
     build: ./kafkaToThingsBoardService
+    image: nicoedu/conector:tb_kafka_conector
     restart: on-failure
     depends_on:
       - thingsboard
