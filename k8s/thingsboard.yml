@@ -96,7 +96,7 @@ spec:
         - name: KAFKA_LISTENERS
           value: "INSIDE://:9093,OUTSIDE://:9092"
         - name: KAFKA_ADVERTISED_LISTENERS
-          value: "INSIDE://:9093,OUTSIDE://tb-kafka:9092,PLAINTEXT://kafka:29092"
+          value: "INSIDE://:9093,OUTSIDE://tb-kafka:9092"
         - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
           value: "INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT"
         - name: KAFKA_INTER_BROKER_LISTENER_NAME
@@ -537,7 +537,7 @@ spec:
       containers:
       - name: server
         imagePullPolicy: Always
-        image: thingsboard/tb-web-ui:latest
+        image: thingsboard/tb-web-ui:2.3.0
         ports:
         - containerPort: 8080
           name: http
