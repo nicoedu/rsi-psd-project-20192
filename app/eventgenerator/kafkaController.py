@@ -3,12 +3,12 @@ from kafka.admin import KafkaAdminClient, NewTopic
 from kafka.client import KafkaClient, KafkaUnavailableError
 from time import sleep
 import logging
+HOSTPORT = 'localhost:31090'
 
-
-def connectKafkaProducer(host):
+def connectKafkaProducer():
     producer = None
     try:
-        producer = KafkaProducer(bootstrap_servers=host + ':9092',
+        producer = KafkaProducer(bootstrap_servers=HOSTPORT,
                                  value_serializer=lambda v: str(v).encode('utf-8'), acks=1, retries=3, max_in_flight_requests_per_connection=1)
     except Exception as ex:
         logging.error(ex)
@@ -19,7 +19,7 @@ def connectKafkaProducer(host):
 def createTopic(topic_name, partition_number):
     try:
         admin_client = KafkaAdminClient(
-            bootstrap_servers="localhost:9092", client_id='test')
+            bootstrap_servers=HOSTPORT, client_id='test')
         topic_list = []
         topic_list.append(NewTopic(name=topic_name,
                                    num_partitions=partition_number, replication_factor=1))
@@ -38,7 +38,7 @@ def createTopic(topic_name, partition_number):
 
 def checkTopicExists(topic_name):
     try:
-        kafkaClient = KafkaClient(bootstrap_servers='localhost:9092')
+        kafkaClient = KafkaClient(bootstrap_servers=HOSTPORT)
         metadata = kafkaClient.poll()
         server_topics = list(x[1] for x in metadata[0].topics)
         kafkaClient.close()

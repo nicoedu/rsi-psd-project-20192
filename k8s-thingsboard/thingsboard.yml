@@ -96,7 +96,7 @@ spec:
         - name: KAFKA_LISTENERS
           value: "INSIDE://:9093,OUTSIDE://:9092"
         - name: KAFKA_ADVERTISED_LISTENERS
-          value: "INSIDE://:9093,OUTSIDE://tb-kafka:9092"
+          value: "INSIDE://:9093,OUTSIDE://:9092"
         - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
           value: "INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT"
         - name: KAFKA_INTER_BROKER_LISTENER_NAME
@@ -590,19 +590,19 @@ spec:
   rules:
   - http:
       paths:
-      - path: /api/v1/.*
+      - path: /api/v1/
         backend:
           serviceName: tb-http-transport
           servicePort: 8080
-      - path: /static/rulenode/.*
+      - path: /static/rulenode/
         backend:
           serviceName: tb-node
           servicePort: 8080
-      - path: /static/.*
+      - path: /static/
         backend:
           serviceName: tb-web-ui
           servicePort: 8080
-      - path: /index.html.*
+      - path: /index.html
         backend:
           serviceName: tb-web-ui
           servicePort: 8080
@@ -610,7 +610,7 @@ spec:
         backend:
           serviceName: tb-web-ui
           servicePort: 8080
-      - path: /.*
+      - path: /api
         backend:
           serviceName: tb-node
           servicePort: 8080
