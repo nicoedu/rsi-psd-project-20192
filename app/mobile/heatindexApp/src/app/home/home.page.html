@@ -1,0 +1,16 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>
+      Ionic Blank
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div id="map" style="width: 100%; height: 80%">
+  </div>
+  <div>
+    <p>Localização atual: Latitude: {{lat}} Longitude: {{long}} </p>
+  </div>
+  <ion-button (click)='sentKafkaLatLng()' expand="full" color="secondary">Obter Indice de Calor</ion-button>
+</ion-content>

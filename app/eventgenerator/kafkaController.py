@@ -3,7 +3,7 @@ from kafka.admin import KafkaAdminClient, NewTopic
 from kafka.client import KafkaClient, KafkaUnavailableError
 from time import sleep
 import logging
-HOSTPORT = 'localhost:31090'
+HOSTPORT = 'localhost:9092'
 
 def connectKafkaProducer():
     producer = None
