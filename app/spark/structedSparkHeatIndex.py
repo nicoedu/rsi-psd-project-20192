@@ -14,7 +14,7 @@ class ForeachWriter:
 
     #!! Checar se retorno alternativo funciona
     def open(self, partition_id, epoch_id):
-        self.producer = KafkaProducer(bootstrap_servers='localhost:9092',
+        self.producer = KafkaProducer(bootstrap_servers='kafka:9092',
                                       value_serializer=lambda v: str(v).encode('utf-8'), acks=1, retries=3, max_in_flight_requests_per_connection=1)
         # return self.producer.bootstrap_connected()
         return True
@@ -66,7 +66,7 @@ def calcHeatIndex(temperature, relHumidity):
 
 if __name__ == "__main__":
 
-    bootstrapServers = 'localhost:9092'
+    bootstrapServers = 'kafka:9092'
     subscribeType = 'subscribe'
     topics = 'weatherstation.sensor'
 
