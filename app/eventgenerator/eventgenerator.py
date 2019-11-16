@@ -12,7 +12,6 @@ import kafkaController
 #import LogFormatter
 import logging
 
-HOST = 'localhost'
 TOPIC_NAME = 'weatherstation.sensor'
 
 
@@ -70,7 +69,7 @@ def main(files_patch, speed):
     stationFiles = getStationsFilesNames(files_patch)
     if(not kafkaController.checkTopicExists(TOPIC_NAME)):
         kafkaController.createTopic(TOPIC_NAME, len(stationFiles))
-    kakfaProducer = kafkaController.connectKafkaProducer(HOST)
+    kakfaProducer = kafkaController.connectKafkaProducer()
 
     for file in stationFiles:
         
