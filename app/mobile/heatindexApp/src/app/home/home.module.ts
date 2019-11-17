@@ -6,12 +6,14 @@ import { RouterModule } from '@angular/router';
 
 import { HomePage } from './home.page';
 import { HTTP } from '@ionic-native/http/ngx';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
+    HttpClientModule,
     RouterModule.forChild([
       {
         path: '',
@@ -20,6 +22,5 @@ import { HTTP } from '@ionic-native/http/ngx';
     ])
   ],
   declarations: [HomePage],
-  providers: [HTTP]
 })
-export class HomePageModule {}
+export class HomePageModule { }

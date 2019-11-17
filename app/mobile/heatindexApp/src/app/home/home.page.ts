@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { Map, latLng, tileLayer, Layer, marker } from 'leaflet';
-import { HTTP } from '@ionic-native/http/ngx';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 
 @Component({
@@ -13,8 +13,8 @@ export class HomePage {
   lat = -8.01746;
   long = -34.9426384;
   constructor(
-    private http: HTTP,
-    ) {}
+    public http: HttpClient
+  ) { }
 
   ionViewDidEnter() { this.leafletMap(); }
 
@@ -41,8 +41,24 @@ export class HomePage {
     this.map.remove();
   }
 
-  sentKafkaLatLng(){
-    console.log('teste');
+  sentKafkaLatLng() {
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      })
+    };
+
+    let postData = {
+      "latitude": this.lat,
+      "longitude": this.long
+    }
+
+    this.http.post("http://localhost:3000/", postData, httpOptions)
+      .subscribe(data => {
+        console.log(data['_body']);
+      }, error => {
+        console.log(error);
+      });
   }
 
 

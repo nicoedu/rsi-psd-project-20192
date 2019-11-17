@@ -2,3 +2,4 @@
 app/__pycache__/
 app/eventgenerator/__pycache__/
 app/spark/__pycache__/
+app/mobile/mobileService/node_modules/

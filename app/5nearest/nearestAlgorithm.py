@@ -3,18 +3,16 @@ import json
 import math
 
 
-def nearest5(latitute, longitude):
-    # TODO carregar lista na variavel abaixo
-    lista = []
+def nearest5(latitute, longitude, lista):
     distancias = []
     for i in range(len(lista)):
-        distancias.append([i, calculateDistance(
-            latitute, longitude, lista[0], lista[1])])
-    distancias.sort()
+        distancias.append((lista[i][0], calculateDistance(
+            latitute, longitude, lista[i][1][0], lista[i][1][1])))
+    distancias.sort(key=lambda t: t[1])
     resultado = []
     for i in range(0, 5):
         resultado.append(distancias[i])
-    return json.dumps(resultado), 200
+    return json.dumps(resultado)
 
 
 def calculateDistance(lat1, long1, lat2, long2):

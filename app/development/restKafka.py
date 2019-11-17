@@ -17,8 +17,8 @@ class kafkaRest():
             return self.producer
         try:
             self.producer = None
-            self.producer = KafkaProducer(bootstrap_servers=self.host + ':9092',
-                                          value_serializer=lambda v: str(v).encode('utf-8'), acks=1, retries=3, max_in_flight_requests_per_connection=1, batch_size=1000000)
+            self.producer = KafkaProducer(bootstrap_servers=self.host,
+                                          value_serializer=lambda v: json.dumps(v).encode('utf-8'), acks=1, retries=3, max_in_flight_requests_per_connection=1, batch_size=1000000)
         except Exception as ex:
             logging.error(ex)
 
@@ -35,7 +35,7 @@ class kafkaRest():
             return None
         try:
             self.consumer = None
-            self.consumer = KafkaConsumer(self.topicPreFix + '.request', bootstrap_servers=self.host + ':9092',
+            self.consumer = KafkaConsumer(self.topicPreFix + '.request', bootstrap_servers=self.host,
                                           value_deserializer=lambda v: str(v).encode('utf-8'), enable_auto_commit=False, auto_offset_reset='latest', group_id=self.group)
         except Exception as ex:
             logging.error(ex)
