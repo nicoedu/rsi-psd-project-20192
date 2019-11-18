@@ -9,10 +9,10 @@ def nearest5(latitute, longitude, lista):
         distancias.append((lista[i][0], calculateDistance(
             latitute, longitude, lista[i][1][0], lista[i][1][1])))
     distancias.sort(key=lambda t: t[1])
-    resultado = []
+    resultado = {}
     for i in range(0, 5):
-        resultado.append(distancias[i])
-    return json.dumps(resultado)
+        resultado[distancias[i][0]] = distancias[i][1]
+    return resultado
 
 
 def calculateDistance(lat1, long1, lat2, long2):

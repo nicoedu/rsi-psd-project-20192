@@ -37,9 +37,10 @@ def main():
                              value_serializer=lambda v: json.dumps(v).encode('utf-8'), acks=1, retries=3, max_in_flight_requests_per_connection=1, batch_size=1000000)
     for message in consumer:
         latlngdict = message.value
-        print(near.nearest5(latlngdict['latitude'],
-                            latlngdict['longitude'], getStationList()))
-        producer.send(reply, {'teste': "teste"})
+        print(getStationList())
+        nearestStations = near.nearest5(latlngdict['latitude'],
+                                        latlngdict['longitude'], getStationList())
+        producer.send(reply, nearestStations)
 
 
 if __name__ == '__main__':

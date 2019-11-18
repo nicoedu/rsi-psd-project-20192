@@ -1,7 +1,7 @@
 var kafka = require('kafka-node')
 var Consumer = kafka.Consumer
 var Offset = kafka.Offset
-var topic = 'nearest.reply'
+var topic = 'interpolation.request'
 
 var client = new kafka.KafkaClient({ kafkaHost: 'localhost:9092' })
 var topics = [{ topic: topic }]

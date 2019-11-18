@@ -26,6 +26,10 @@ app.use(bodyParser.json());
 app.use(methodOverride());
 app.use(cors());
 
+const topicNearestReply = 'nearest.reply'
+const topicNearestRequest = 'nearest.request'
+const topicInterpolationReply = 'interpolation.reply'
+const topicInterpolationRequest = 'interpolation.request'
 
 Producer = kafka.HighLevelProducer;
 clientProducer = new kafka.KafkaClient();
@@ -33,34 +37,52 @@ producer = new Producer(clientProducer, { requireAcks: 1 });
 
 Consumer = kafka.Consumer
 clientConsumer = new kafka.KafkaClient()
-clientConsumer.loadMetadataForTopics(["interpolation.reply"], (err, resp) => {
+clientConsumer.loadMetadataForTopics([topicNearestReply], (err, resp) => {
     console.log(JSON.stringify(resp))
 });
 
 consumer = new Consumer(
     clientConsumer, [
-        { topic: 'nearest.request' }
+        { topic: topicNearestReply }, { topic: topicInterpolationReply }
     ], {
         autoCommit: false
     }
 );
+
+
 producer.on('ready', function() {
 
 
     app.post('/', function(req, res) {
         const buffer = new Buffer.from(JSON.stringify(req.body));
-        payloads = [
-            { topic: 'nearest.request', messages: buffer }
+        payloadsNearest = [
+            { topic: topicNearestRequest, messages: buffer }
         ];
-        producer.send(payloads, function(err, data) {
+
+        producer.send(payloadsNearest, function(err, data) {
             if (err) {
                 res.status(500).send(JSON.stringify({
                     "messages": "Error while sending messages.",
                 }));
-            } else {
-                res.status(201).send(JSON.stringify({
-                    "messages": "Message sent."
-                }));
+            }
+
+        });
+        consumer.on('message', function(message) {
+            if (message.topic == topicNearestReply) {
+
+                payloadsInterpolation = [
+                    { topic: 'interpolation.request', messages: message.value }
+                ];
+                producer.send(payloadsInterpolation, function(err, data) {
+                    if (err) {
+                        res.status(500).send(JSON.stringify({
+                            "messages": "Error while sending messages.",
+                        }));
+                    }
+
+                });
+            } else if (message.topic == topicInterpolationReply) {
+                res.status(200).send()
             }
 
         });
