@@ -12,5 +12,6 @@
   <div>
     <p>Localização atual: Latitude: {{lat}} Longitude: {{long}} </p>
   </div>
-  <ion-button (click)='sentKafkaLatLng()' expand="full" color="secondary">Obter Indice de Calor</ion-button>
+  <ion-button  [class.button-disabled]='!enabledButton' (click)='sentKafkaLatLng()' expand="full" color="secondary">Obter Indice de Calor</ion-button>
+
 </ion-content>

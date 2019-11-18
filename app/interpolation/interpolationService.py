@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-#!/usr/bin/env python
 from kafka import KafkaProducer, KafkaConsumer
 import requests
 import json
@@ -13,15 +12,22 @@ reply = topicprefix + '.reply'
 hostKafka = 'localhost:9092'
 hostThingsboard = 'localhost:9090'
 
+def getThingsboardAuthToken():
+    resp = requests.post('http://'+hostThingsboard+'/api/auth/login', json={
+                         "username": "tenant@thingsboard.org", "password": "tenant"}, headers={"Accept": "application/json"})
+    responseDict = resp.json()
+    return responseDict['token']
 
-def getStationList():
+def getHeatIndex(distanceDict):
     authToken = getThingsboardAuthToken()
     header = {"Accept": "application/json",
               "X-Authorization": "Bearer "+authToken}
-    resp = requests.get('http://'+hostThingsboard +
-                        '/api/tenant/devices?limit=9999&textSearch=A', headers=header)
-    responseDict = resp.json()
-    return (list(map(lambda x: (x['id']['id'], list(map(float, x['additionalInfo'].split(';')))), responseDict['data'])))
+    heatIndexList = []
+    for deviceId in distanceDict.keys():
+        resp = requests.get('http://'+hostThingsboard + '/api/plugins/telemetry/DEVICE/'+ deviceId +'/values/timeseries?keys=heatIndex',
+            headers=header)
+        heatIndexList.append((distanceDict[deviceId], float(resp.json()['heatIndex'][0]['value'])))
+    return heatIndexList
 
 
 def main():
@@ -29,11 +35,12 @@ def main():
                              value_deserializer=lambda v: json.loads(v.decode('utf-8')), enable_auto_commit=False, auto_offset_reset='latest')
     producer = KafkaProducer(bootstrap_servers=hostKafka,
                              value_serializer=lambda v: json.dumps(v).encode('utf-8'), acks=1, retries=3, max_in_flight_requests_per_connection=1, batch_size=1000000)
+    
     for message in consumer:
-        latlngdict = message.value
-        nearestStations = idw.nearest5(latlngdict['latitude'],
-                                       latlngdict['longitude'], getStationList())
-        producer.send(reply, nearestStations)
+        valor = idw.interpolateHI(getHeatIndex(message.value))
+        print("Valor obtido na interpolacao: ", valor)
+        future = producer.send(reply, valor)
+        future.get(timeout=10)
 
 
 if __name__ == '__main__':

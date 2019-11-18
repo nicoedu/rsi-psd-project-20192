@@ -37,15 +37,15 @@ producer = new Producer(clientProducer, { requireAcks: 1 });
 
 Consumer = kafka.Consumer
 clientConsumer = new kafka.KafkaClient()
-clientConsumer.loadMetadataForTopics([topicNearestReply], (err, resp) => {
+clientConsumer.loadMetadataForTopics([topicNearestReply, topicInterpolationReply], (err, resp) => {
     console.log(JSON.stringify(resp))
 });
 
 consumer = new Consumer(
     clientConsumer, [
-        { topic: topicNearestReply }, { topic: topicInterpolationReply }
+        { topic: topicNearestReply, fromOffset: 'latest'  }, { topic: topicInterpolationReply,fromOffset: 'latest'  }
     ], {
-        autoCommit: false
+        autoCommit: true
     }
 );
 
@@ -54,9 +54,9 @@ producer.on('ready', function() {
 
 
     app.post('/', function(req, res) {
-        const buffer = new Buffer.from(JSON.stringify(req.body));
+
         payloadsNearest = [
-            { topic: topicNearestRequest, messages: buffer }
+            { topic: topicNearestRequest, messages: JSON.stringify(req.body) }
         ];
 
         producer.send(payloadsNearest, function(err, data) {
@@ -69,9 +69,9 @@ producer.on('ready', function() {
         });
         consumer.on('message', function(message) {
             if (message.topic == topicNearestReply) {
-
+                console.log(message)
                 payloadsInterpolation = [
-                    { topic: 'interpolation.request', messages: message.value }
+                    { topic: topicInterpolationRequest, messages: message.value }
                 ];
                 producer.send(payloadsInterpolation, function(err, data) {
                     if (err) {
@@ -79,18 +79,23 @@ producer.on('ready', function() {
                             "messages": "Error while sending messages.",
                         }));
                     }
-
                 });
             } else if (message.topic == topicInterpolationReply) {
-                res.status(200).send()
+                res.status(200).send(message.value)
+                
+                
             }
 
         });
+        
 
     });
-    producer.on('error', function(err) {
-        console.log(err)
-    })
+   
 
 });
+
+producer.on('error', function(err) {
+    console.log(err)
+})
+
 app.listen(process.env.PORT || 3000);

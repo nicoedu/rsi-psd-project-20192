@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import json
-import math
+from math import radians, cos, sin, asin, sqrt
 
 
 def nearest5(latitute, longitude, lista):
@@ -15,13 +15,15 @@ def nearest5(latitute, longitude, lista):
     return resultado
 
 
-def calculateDistance(lat1, long1, lat2, long2):
-    d2r = 0.017453292519943295769236
-    dlong = (long1-long2)*d2r
-    dlat = (lat1-lat2)*d2r
-    tempsin = math.sin(dlat/2.0)
-    tempcos = math.cos(lat1 * d2r)
-    tempsin2 = math.sin(dlong/2.0)
-    a = (tempsin * tempsin)+(tempcos*tempcos)+(tempsin2*tempsin2)
-    c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0-a))
-    return 6368.1 * c
+def calculateDistance(lat1, lon1, lat2, lon2):
+    R = 6372.8 # KM
+
+    dLat = radians(lat2 - lat1)
+    dLon = radians(lon2 - lon1)
+    lat1 = radians(lat1)
+    lat2 = radians(lat2)
+
+    a = sin(dLat/2)**2 + cos(lat1)*cos(lat2)*sin(dLon/2)**2
+    c = 2*asin(sqrt(a))
+
+    return R * c
