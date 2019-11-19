@@ -54,7 +54,6 @@ consumer = new Consumer(
     }
 );
 
-
 producer.on('ready', function() {
 
 
@@ -72,9 +71,15 @@ producer.on('ready', function() {
             }
 
         });
+        
         consumer.on('message', function(message) {
+            if(res.writableEnded) {
+                return 0
+            }
             if (message.topic == topicNearestReply) {
                 console.log(message)
+
+
                 payloadsInterpolation = [
                     { topic: topicInterpolationRequest, messages: message.value }
                 ];
@@ -87,12 +92,9 @@ producer.on('ready', function() {
                 });
             } else if (message.topic == topicInterpolationReply) {
                 res.status(200).send(message.value)
-
-
             }
 
         });
-
 
     });
 
