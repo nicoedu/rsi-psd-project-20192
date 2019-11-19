@@ -37,13 +37,18 @@ producer = new Producer(clientProducer, { requireAcks: 1 });
 
 Consumer = kafka.Consumer
 clientConsumer = new kafka.KafkaClient()
+
+// try to loads metadata from topics, if at least one of the topics does not exist, they are created
 clientConsumer.loadMetadataForTopics([topicNearestReply, topicInterpolationReply], (err, resp) => {
+    if (err) {
+        console.log("Creating topics")
+    }
     console.log(JSON.stringify(resp))
 });
 
 consumer = new Consumer(
     clientConsumer, [
-        { topic: topicNearestReply, fromOffset: 'latest'  }, { topic: topicInterpolationReply,fromOffset: 'latest'  }
+        { topic: topicNearestReply, fromOffset: 'latest' }, { topic: topicInterpolationReply, fromOffset: 'latest' }
     ], {
         autoCommit: true
     }
@@ -82,15 +87,15 @@ producer.on('ready', function() {
                 });
             } else if (message.topic == topicInterpolationReply) {
                 res.status(200).send(message.value)
-                
-                
+
+
             }
 
         });
-        
+
 
     });
-   
+
 
 });
 

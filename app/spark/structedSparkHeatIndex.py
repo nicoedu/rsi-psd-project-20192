@@ -1,12 +1,19 @@
+#!/usr/bin/env python3
 """
     
     bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.4.3
 """
+from __future__ import absolute_import
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col
 from pyspark.sql.types import *
 from kafka import KafkaProducer
 import json
+import logging
+
+KAFKA_HOST = 'kafka:29092'
+#KAFKA_HOST = 'localhost:9092'
 
 
 class ForeachWriter:
@@ -14,7 +21,7 @@ class ForeachWriter:
 
     #!! Checar se retorno alternativo funciona
     def open(self, partition_id, epoch_id):
-        self.producer = KafkaProducer(bootstrap_servers='localhost:9092',
+        self.producer = KafkaProducer(bootstrap_servers=KAFKA_HOST,
                                       value_serializer=lambda v: str(v).encode('utf-8'), acks=1, retries=3, max_in_flight_requests_per_connection=1)
         # return self.producer.bootstrap_connected()
         return True
@@ -27,7 +34,7 @@ class ForeachWriter:
         heatIndexCelcius = temperatureFahrenheitToCelsius(heatIndexFahreheint)
         data = {"timestamp": row.timestamp,
                 "stationCode": row.stationCode, "heatIndex": heatIndexCelcius}
-        print(json.dumps(data))
+        logging.info(str(json.dumps(data)))
         self.producer.send('weatherstation.heatindex', json.dumps(data))
 
     def close(self, error):
@@ -66,7 +73,7 @@ def calcHeatIndex(temperature, relHumidity):
 
 if __name__ == "__main__":
 
-    bootstrapServers = 'localhost:9092'
+    bootstrapServers = KAFKA_HOST
     subscribeType = 'subscribe'
     topics = 'weatherstation.sensor'
 
