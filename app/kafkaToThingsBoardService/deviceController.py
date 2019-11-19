@@ -23,7 +23,7 @@ async def getThingsboardAuthToken():
 # @param name Nome do device a ser criado
 async def createDevice(name, latitude, longitude, header):
     async with aiohttp.ClientSession() as session:
-        resp = await session.post('http://'+HOST+'/api/device', json={'additionalInfo': str(latitude)+";"+str(longitude), 'name': name, 'type': 'default'}, headers=header)
+        resp = await session.post('http://'+HOST+'/api/device', json={'additionalInfo': str(latitude)+";"+str(longitude), 'name': name, 'type': 'SENSOR'}, headers=header)
         responseDict = await resp.json()
         if (resp.status == 200):
             return (responseDict['id']['id'])
@@ -60,7 +60,7 @@ async def setLocationToDevice(acessToken, latitude, longitude):
             if (resp.status == 200):
                 return True
             else:
-                return False
+                print(resp)
 
     except Exception as e:
         logging.error(e)
@@ -81,8 +81,8 @@ async def getAcessToken(name, latitude, longitude) -> tuple:
         assert latitude is not None and longitude is not None
         try:
             deviceId = await asyncio.ensure_future((createDevice(name, latitude, longitude, header)))
-            atributes = await asyncio.ensure_future(setLocationToDevice(deviceId, latitude, longitude))
             acessToken = await asyncio.ensure_future((getDeviceAcessToken(deviceId, header)))
+            atributes = await asyncio.ensure_future((setLocationToDevice(acessToken, latitude, longitude)))
             return acessToken
         except Exception as ex:
             logging.error(ex)
