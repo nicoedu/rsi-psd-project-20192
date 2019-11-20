@@ -56,7 +56,6 @@ consumer = new Consumer(
     }
 );
 
-var offset = 0;
 producer.on('ready', function() {
 
 
@@ -76,12 +75,13 @@ producer.on('ready', function() {
         });
 
         consumer.on('message', function(message) {
-            if (offset == message.offset) {
-                return
+            if (res.writableEnded) {
+                return 0
             }
-            offset = message.offset
             if (message.topic == topicNearestReply) {
                 console.log(message)
+
+
                 payloadsInterpolation = [
                     { topic: topicInterpolationRequest, messages: message.value }
                 ];
@@ -99,14 +99,10 @@ producer.on('ready', function() {
                     }
                 });
                 res.status(200).send(message.value)
-                return
             }
             return
 
         });
-
-
-
 
     });
 

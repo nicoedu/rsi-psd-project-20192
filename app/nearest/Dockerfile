@@ -10,4 +10,4 @@ RUN pip install -r requirements.txt
 
 
 
-CMD ["python","-u", "interpolationService.py"]
+CMD ["python","-u", "nearestService.py"]

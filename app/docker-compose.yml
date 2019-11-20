@@ -79,3 +79,11 @@ services:
     environment:
       - ENABLE_INIT_DAEMON=false
     restart: on-failure
+
+  interpolation-ms:
+    build: ./interpolation
+    restart: on-failure
+
+  nearest-ms:
+    build: ./nearest
+    restart: on-failure

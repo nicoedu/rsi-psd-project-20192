@@ -9,8 +9,8 @@ import nearestAlgorithm as near
 topicprefix = 'nearest'
 request = topicprefix + '.request'
 reply = topicprefix + '.reply'
-hostKafka = 'localhost:9092'
-hostThingsboard = 'localhost:9090'
+hostKafka = 'kafka:29092'
+hostThingsboard = 'thingsboard:9090'
 
 
 def getThingsboardAuthToken():
