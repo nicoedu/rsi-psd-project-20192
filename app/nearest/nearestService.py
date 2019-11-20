@@ -25,7 +25,7 @@ def getStationList():
     header = {"Accept": "application/json",
               "X-Authorization": "Bearer "+authToken}
     resp = requests.get('http://'+hostThingsboard +
-                        '/api/tenant/devices?limit=9999&textSearch=A', headers=header)
+                        '/api/tenant/devices?type=SENSOR&limit=9999', headers=header)
     responseDict = resp.json()
     return (list(map(lambda x: (x['id']['id'], list(map(float, x['additionalInfo'].split(';')))), responseDict['data'])))
 
