@@ -35,7 +35,6 @@ services:
 
   conector:
     build: ./kafkaToThingsBoardService
-    image: nicoedu/conector:tb_kafka_conector
     restart: on-failure
     depends_on:
       - thingsboard
