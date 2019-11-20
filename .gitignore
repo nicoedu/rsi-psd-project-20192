@@ -1,0 +1,7 @@
+.prettierignore
+app/__pycache__/
+app/eventgenerator/__pycache__/
+app/spark/__pycache__/
+app/interpolation/__pycache__/
+app/5nearest/__pycache__/
+app/mobile/mobileService/node_modules/
